@@ -1,5 +1,6 @@
 // João Víctor Gomes de Oliveira - 2024
 // A simple calculator in C programming language.
+// How to use: enter the command line "./calculator 2*3+12/4"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,8 +68,7 @@ void call_error(int error_number);
 // MAIN
 int main(int argc, char *argv[])
 {
-    // Waits for an expression, otherwise reports error and closes the program
-    if (argv[1] == NULL) {
+    if (argv[1] == NULL) {  // Waits for an expression, otherwise calls error
         call_error(MISSING_ARGUMENT_ERROR);
     }
 
@@ -90,6 +90,7 @@ void calculator(char *expression) {
 }
 
 queue infix_to_postfix(char *infix_expression) {
+    // Converts an infix expression to a postfix expression
     char temporary_string[256];
     int i, j;
     queue postfix_expression;
@@ -105,7 +106,7 @@ queue infix_to_postfix(char *infix_expression) {
 
     for (i = 0, j = 0; i <= strlen(infix_expression); i++, j++) {
         if (infix_expression[i] >= '0' && infix_expression[i] <= '9') {
-            temporary_string[j] = infix_expression[i];
+            temporary_string[j] = infix_expression[i];  // Appends numbers to make a operand
         }
         else if (infix_expression[i] == '+' 
                     || infix_expression[i] == '-' 
@@ -113,7 +114,7 @@ queue infix_to_postfix(char *infix_expression) {
                     || infix_expression[i] == '/' 
                     || infix_expression[i] == '\0') {
             temporary_string[j] = '\0';
-            enqueue(&postfix_expression, OPERAND, atoi(temporary_string));
+            enqueue(&postfix_expression, OPERAND, atoi(temporary_string));  // Converts a string to a integer (operand) and enqueue it
 
             if (infix_expression[i] != '\0') {
                 if (infix_expression[i+1] == '+' 
@@ -130,17 +131,25 @@ queue infix_to_postfix(char *infix_expression) {
                     call_error(TWO_MORE_OPERATORS_BETWEEN_OPERANDS_ERROR);
                 }
 
-                if (!is_empty_stack(&operator)) {
+                if (!is_empty_stack(&operator)) {  // If the stack is empty, jump this condition and push the first operator
+                    /*
+                    Rule to operators in postfix expression: 
+                    if precedence of the operator of the top of the stack >= precedence of the current operator, 
+                    then enqueue the top of the stack into the expression and push the current operator onto the operator stack.
+                    */
                     if (peek_stack(&operator)->data == '+' 
-                            || peek_stack(&operator)->data == '-') {
+                            || peek_stack(&operator)->data == '-') {  // Top of the stack is '+' or '-'
                         if (infix_expression[i] == '+' 
-                                || infix_expression[i] == '-') {
+                                || infix_expression[i] == '-') {  // Current operator is '+' or '-'
+                            // Enqueue top of the stack into the expression and push the current operator onto the stack
+                            // If the current operator is '*' or '/', only push the operator onto the stack
                             enqueue(&postfix_expression, OPERATOR, 
                                     peek_stack(&operator)->data);
                             pop(&operator);
                         }
                     }
-                    else {
+                    else {  // Top of the stack is '*' or '/'
+                        // Enqueue top of the stack into the expression and push the current operator onto the stack
                         enqueue(&postfix_expression, OPERATOR, 
                                 peek_stack(&operator)->data);
                         pop(&operator);
@@ -150,7 +159,7 @@ queue infix_to_postfix(char *infix_expression) {
                 push(&operator, OPERATOR, infix_expression[i]);
             }
             else {
-                while (!is_empty_stack(&operator)) {
+                while (!is_empty_stack(&operator)) {  // Enqueue the remaining operators into the expression
                     enqueue(&postfix_expression, OPERATOR, 
                             peek_stack(&operator)->data);
                     pop(&operator);
@@ -175,19 +184,21 @@ queue infix_to_postfix(char *infix_expression) {
 }
 
 int calculate(queue *postfix_expression) {
+    // Calculates the result through the postfix expression
     int first_value, second_value, result;
     node * temporary_node;
     stack operand;
 
     initialize_stack(&operand);
 
-    while (!is_empty_queue(postfix_expression)) {
+    while (!is_empty_queue(postfix_expression)) {  // Runs through the expression
         temporary_node = peek_queue(postfix_expression);
 
-        if (temporary_node->type == OPERAND) {
+        if (temporary_node->type == OPERAND) {  // Operand, push onto the stack
             push(&operand, OPERAND, temporary_node->data);
         }
-        else if (temporary_node->type == OPERATOR) {
+        else if (temporary_node->type == OPERATOR) {  // Operator, do the calculation
+            // Takes the second value first because of the stack structure, so for example a division operation becomes a/b instead of b/a
             second_value = peek_stack(&operand)->data;
             pop(&operand);
             first_value = peek_stack(&operand)->data;
@@ -209,13 +220,13 @@ int calculate(queue *postfix_expression) {
                     break;
             }
 
-            push(&operand, OPERAND, result);
+            push(&operand, OPERAND, result);  // Push the result (operand) onto the stack
         }
 
         dequeue(postfix_expression);
     }
 
-    result = peek_stack(&operand)->data;
+    result = peek_stack(&operand)->data;  // Calculated result is the last operand on the stack
     pop(&operand);
 
     return result;
@@ -249,11 +260,11 @@ void enqueue(queue *queue, int type_value, int value) {
     new_node->data = value;
     new_node->next = NULL;
 
-    if (is_empty_queue(queue)) {
+    if (is_empty_queue(queue)) {  // Queue is empty, assign a node to the front and rear of the queue
         queue->front = new_node;
         queue->rear = new_node;
     }
-    else {
+    else {  // Queue isn't empty, assign a node to the rear of the queue
         queue->rear->next = new_node;
         queue->rear = new_node;
     }
@@ -265,7 +276,7 @@ void dequeue(queue *queue) {
     temporary_node = queue->front;
     queue->front = queue->front->next;
 
-    if (is_empty_queue(queue)) {
+    if (is_empty_queue(queue)) {  // Queue is empty, point rear node to NULL
         queue->rear = NULL;
     }
 
@@ -299,14 +310,14 @@ void push(stack *stack, int type_value, int value) {
     new_node->data = value;
     new_node->next = stack->top;
 
-    stack->top = new_node;
+    stack->top = new_node;  // New node is the new top of the stack
 }
 
 void pop(stack *stack) {
     node *temporary_node;
 
     temporary_node = stack->top;
-    stack->top = stack->top->next;
+    stack->top = stack->top->next;  // New top of the stack is the next node from the old top of the stack
 
     free(temporary_node);
 }
@@ -345,6 +356,7 @@ int divide(int first_value, int second_value, queue *postfix_expression,
 
 // ERROR FUNCTIONS
 void call_error(int error_number) {
+    // Prints the error called and closes the program
     switch (error_number) {
         case MISSING_ARGUMENT_ERROR:
             printf("Error: missing arguments\n");
