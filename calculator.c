@@ -1,6 +1,6 @@
 // João Víctor Gomes de Oliveira - 2024
-// A simple calculator in C programming language.
-// How to use: enter the command line "./calculator 2*3+12/4"
+// A simple calculator written in C programming language.
+// How to use: enter the command line "./calculator 2*3+12/4".
 
 #include <stdio.h>
 #include <stdlib.h>
