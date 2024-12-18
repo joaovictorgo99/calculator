@@ -10,4 +10,4 @@ The calculator receives an infix expression, passed as an argument on the comman
 
 Just compile and type in your favorite terminal the following command line `./program infix_expression`, for example `./calculator 2*3+12/4`, and the result will come next, in this case, `9` is returned.
 
-> **Tip:** It's a simple calculator, so use simple expressions and forget about parentheses.
+> **Tip:** It's a simple calculator, so use simple expressions, only natural numbers and forget about parentheses.
